@@ -1,0 +1,66 @@
+http:
+  routers:
+    # Triggers wildcard certificate acquisition for *.rails49.org
+    wildcard-certs:
+      rule: "HostRegexp(`{subdomain:[a-z]+}.rails49.org`)"
+      priority: 1
+      entryPoints:
+        - websecure
+      middlewares:
+        - local-only
+      service: noop@internal
+      tls:
+        certResolver: myresolver
+        domains:
+          - main: "*.rails49.org"
+
+    # Traefik dashboard at traefik.rails49.org
+    traefik-dashboard:
+      rule: "Host(`traefik.rails49.org`)"
+      entryPoints:
+        - websecure
+      middlewares:
+        - local-only
+      service: api@internal
+      tls:
+        certResolver: myresolver
+
+    # Redirect rails49.org (apex) to ui.rails49.org
+    apex-redirect:
+      rule: "Host(`rails49.org`)"
+      entryPoints:
+        - websecure
+      middlewares:
+        - local-only
+        - redirect-to-ui
+      service: noop@internal
+      tls:
+        certResolver: myresolver
+
+  middlewares:
+    # --- Local Network Only Whitelist ---
+    # Only allows requests from private IP ranges. 
+    # This ensures that even if ports 80/443 are exposed, they are rejected for external IPs.
+    local-only:
+      ipAllowList:
+        sourceRange:
+          - "127.0.0.1/32"      # Localhost
+          - "192.168.0.0/16"    # Standard home networks
+          - "172.16.0.0/12"     # Private B (also used by Docker internally)
+          - "10.0.0.0/8"        # Private A
+
+    redirect-to-ui:
+      redirectRegex:
+        regex: "^https://rails49\\.org(.*)"
+        replacement: "https://ui.rails49.org${1}"
+        permanent: true
+
+tcp:
+  middlewares:
+    local-only-tcp:
+      ipAllowList:
+        sourceRange:
+          - "127.0.0.1/32"
+          - "192.168.0.0/16"
+          - "172.16.0.0/12"
+          - "10.0.0.0/8"

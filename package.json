@@ -1,0 +1,16 @@
+{
+  "name": "occupancy",
+  "private": true,
+  "scripts": {
+    "test": "pnpm -r test",
+    "build": "pnpm -r build"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  },
+  "pnpm": {
+    "overrides": {
+      "lit": "^3.3.2"
+    }
+  }
+}

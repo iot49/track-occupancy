@@ -1,0 +1,25 @@
+# Ignore everything by default
+**
+
+# Allow only necessary files for building the services
+!package.json
+!pnpm-workspace.yaml
+!pnpm-lock.yaml
+!tsconfig.json
+!tsconfig.base.json
+!control/
+!lib/
+!ui/dist/
+
+# Specifically ignore large folders within the allowed ones
+**/node_modules
+**/.git
+**/.DS_Store
+# We ignore src in the root context but individual Dockerfiles will pick what they need
+# unless they use the root context (which ours do). 
+# So we need to keep src for those that need it:
+!control/*/src/**
+!lib/*/src/**
+
+# Keep the UI dist for nginx
+!ui/dist/**

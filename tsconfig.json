@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "baseUrl": "./",
+    "paths": {
+      "@occupancy/r49": ["lib/r49/src/index.ts"],
+      "@occupancy/classifier": ["lib/classifier/src/index.ts"],
+      "@occupancy/classifier/*": ["lib/classifier/src/*.ts"]
+    },
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "name": "@occupancy/detector",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./src/main.ts",
+  "scripts": {
+    "start": "tsx src/main.ts",
+    "dev": "tsx watch src/main.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@occupancy/classifier": "workspace:*",
+    "@occupancy/r49": "workspace:*",
+    "express": "^5.2.1",
+    "mqtt": "^5.10.1",
+    "sharp": "^0.33.4"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^20.14.0",
+    "tsx": "^4.19.4",
+    "typescript": "^5.4.5"
+  }
+}

@@ -1,0 +1,12 @@
+packages:
+  - "lib/*"
+  - "dataset"
+  - "ui"
+  - "control/track-occupancy"
+  - "control/dcc-ex-bridge"
+allowBuilds:
+  "@serialport/bindings-cpp": true
+  esbuild: true
+  onnxruntime-node: true
+  protobufjs: true
+  sharp: true

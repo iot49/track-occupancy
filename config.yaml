@@ -1,0 +1,31 @@
+# Image dimensions
+CROP_SIZE_UI: 96
+CROP_SIZE_PREP: 144  # 1.5 * CROP_SIZE_UI
+
+# Scale normalization
+SAMPLE_DPT: 20
+
+# Model normalization (ImageNet defaults)
+IMAGENET_MEAN: [0.485, 0.456, 0.406]
+IMAGENET_STD: [0.229, 0.224, 0.225]
+
+# Validation split
+VAL_SPLIT: 0.2
+
+# Training hyperparameters
+DEFAULT_BATCH_SIZE: 32
+DEFAULT_NUM_EPOCHS: 5
+LEARNING_RATE: 0.0001
+
+# Physical constants
+STANDARD_GAUGE: 1435.0
+
+# Scale to ratio mapping (e.g., HO is 1:87)
+SCALE_2_NUMBER:
+  G: 25
+  O: 48
+  S: 64
+  HO: 87
+  T: 120
+  N: 160
+  Z: 220
