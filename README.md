@@ -113,11 +113,8 @@ The edge server provides the following endpoints (accessible via `ui.rails49.org
 - **Dashboard**: Traefik dashboard available at [traefik.rails49.org](https://traefik.rails49.org).
 - **Control**: All services are managed via Docker Compose within the `control/` stack.
 
-> [!IMPORTANT]
-> When editing `.r49` files in the UI, remember to **upload the edited file to the server** via the Settings menu to apply changes to the live detection engine.
-
 ---
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the [MIT License](https://opensource.org/license/mit).

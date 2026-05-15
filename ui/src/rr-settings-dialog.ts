@@ -164,6 +164,7 @@ export class RRSettingsDialog extends LitElement {
                 placeholder="https://ui.rails49.org"
               ></sl-input>
 
+              <!-- Save button (toolbar) uploads to server when connected.
               <div class="label">Actions</div>
               <div style="display: flex; gap: 0.5rem;">
                 <sl-button 
@@ -187,6 +188,7 @@ export class RRSettingsDialog extends LitElement {
                   Upload .r49
                 </sl-button>
               </div>
+              -->
 
               <div class="label">Status</div>
               <div style="color: ${this.serverConnected ? 'var(--sl-color-success-600)' : 'var(--sl-color-danger-600)'}">

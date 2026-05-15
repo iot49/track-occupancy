@@ -50,4 +50,30 @@ describe('R49Archive', () => {
     archive.removeImage('test.jpg');
     expect(archive.getManifest().images).toHaveLength(0);
   });
+
+  it('should reorder images', () => {
+    const archive = new R49Archive();
+    archive.setManifest({
+      version: 3,
+      layout: { name: 'Test', scale: 'N', calibration: { p0: {x:0,y:0}, p1: {x:1,y:1}, size_mm: 1 } },
+      camera: { resolution: { width: 640, height: 480 } },
+      images: [
+        { filename: '1.jpg', labels: {} },
+        { filename: '2.jpg', labels: {} },
+        { filename: '3.jpg', labels: {} }
+      ]
+    } as any);
+
+    archive.reorderImages(0, 2);
+    let images = archive.getManifest().images;
+    expect(images[0].filename).toBe('2.jpg');
+    expect(images[1].filename).toBe('3.jpg');
+    expect(images[2].filename).toBe('1.jpg');
+
+    archive.reorderImages(2, 1);
+    images = archive.getManifest().images;
+    expect(images[0].filename).toBe('2.jpg');
+    expect(images[1].filename).toBe('1.jpg');
+    expect(images[2].filename).toBe('3.jpg');
+  });
 });

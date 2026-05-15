@@ -104,9 +104,9 @@ export class RRHeader extends LitElement {
     return html`
       <nav>
         <div class="left-section">
-          <sl-tooltip content="Toggle View (Editor/Live)">
+          <sl-tooltip content="${this.viewMode === 'editor' ? 'Switch to Live View' : 'Switch to Editor View'}">
             <sl-icon-button 
-              name=${this.viewMode === 'editor' ? 'play-fill' : 'pencil-fill'} 
+              name=${this.viewMode === 'editor' ? 'image-fill' : 'camera-video-fill'} 
               @click=${this._onToggleView}
             ></sl-icon-button>
           </sl-tooltip>

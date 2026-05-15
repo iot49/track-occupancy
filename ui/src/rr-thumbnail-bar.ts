@@ -1,5 +1,5 @@
 import { LitElement, html, css } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 
 /**
  * Horizontal strip of image thumbnails for selecting and managing layout images.
@@ -12,6 +12,9 @@ import { customElement, property } from 'lit/decorators.js';
 export class RRThumbnailBar extends LitElement {
   @property({ type: Array }) images: string[] = [];
   @property({ type: Number }) selectedIndex = -1;
+
+  @state() private _draggedIndex: number | null = null;
+  @state() private _dropIndex: number | null = null;
 
   static styles = css`
     :host {
@@ -99,6 +102,16 @@ export class RRThumbnailBar extends LitElement {
       color: var(--sl-color-primary-500);
       background: #222;
     }
+
+    .thumbnail-wrapper.dragging {
+      opacity: 0.4;
+    }
+
+    .thumbnail-wrapper.drop-target {
+      outline: 2px solid var(--sl-color-primary-500);
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
   `;
 
   private _onSelect(index: number) {
@@ -126,10 +139,58 @@ export class RRThumbnailBar extends LitElement {
     }));
   }
 
+  private _onDragStart(e: DragEvent, index: number) {
+    this._draggedIndex = index;
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', index.toString());
+    }
+  }
+
+  private _onDragOver(e: DragEvent, index: number) {
+    e.preventDefault();
+    if (this._draggedIndex === null || this._draggedIndex === index) return;
+    this._dropIndex = index;
+  }
+
+  private _onDragLeave() {
+    this._dropIndex = null;
+  }
+
+  private _onDrop(e: DragEvent, index: number) {
+    e.preventDefault();
+    this._dropIndex = null;
+    if (this._draggedIndex === null || this._draggedIndex === index) {
+      this._draggedIndex = null;
+      return;
+    }
+
+    this.dispatchEvent(new CustomEvent('rr-image-reorder', {
+      detail: { from: this._draggedIndex, to: index },
+      bubbles: true,
+      composed: true
+    }));
+
+    this._draggedIndex = null;
+  }
+
+  private _onDragEnd() {
+    this._draggedIndex = null;
+    this._dropIndex = null;
+  }
+
   render() {
     return html`
       ${this.images.map((url, index) => html`
-        <div class="thumbnail-wrapper">
+        <div 
+          class="thumbnail-wrapper ${this._draggedIndex === index ? 'dragging' : ''} ${this._dropIndex === index ? 'drop-target' : ''}"
+          draggable="true"
+          @dragstart=${(e: DragEvent) => this._onDragStart(e, index)}
+          @dragover=${(e: DragEvent) => this._onDragOver(e, index)}
+          @dragleave=${this._onDragLeave}
+          @drop=${(e: DragEvent) => this._onDrop(e, index)}
+          @dragend=${this._onDragEnd}
+        >
           <sl-tooltip content="Switch to image">
             <img 
               src="${url}" 

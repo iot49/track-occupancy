@@ -205,6 +205,11 @@ export class RRApp extends LitElement {
       a.click();
       URL.revokeObjectURL(url);
       this._notify('Saved to disk', 'success', 'download');
+
+      // Auto-upload if connected
+      if (this._serverConnected) {
+        await this._onServerUpload();
+      }
     } catch (err) {
       console.error('Failed to save archive', err);
       this._notify(`Save failed: ${String(err)}`, 'danger', 'exclamation-diamond');

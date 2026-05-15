@@ -114,4 +114,24 @@ describe('rr-app', () => {
     expect(notifySpy).toHaveBeenCalledWith('Saved to disk', 'success', 'download');
     expect(exportSpy).toHaveBeenCalled();
   });
+
+  it('uploads to server when saving and connected', async () => {
+    const el = await fixture<RRApp>(html`<rr-app></rr-app>`);
+    archive.getManifest().layout.calibration = {
+      p0: { x: 100, y: 100 },
+      p1: { x: 200, y: 200 },
+      size_mm: 100
+    };
+    (el as any)._archive = archive;
+    (el as any)._serverConnected = true;
+    (el as any)._serverUrl = 'http://test-server';
+    
+    const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({ ok: true } as any);
+    
+    await (el as any)._onFileSave();
+    
+    expect(fetchSpy).toHaveBeenCalledWith(expect.stringContaining('http://test-server/api/r49'), expect.objectContaining({
+      method: 'POST'
+    }));
+  });
 });

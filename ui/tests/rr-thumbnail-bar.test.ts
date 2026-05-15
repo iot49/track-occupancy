@@ -68,4 +68,33 @@ describe('rr-thumbnail-bar', () => {
     const ev2 = await oneEvent(el, 'rr-image-add');
     expect(ev2.detail.source).to.equal('file');
   });
+
+  it('emits rr-image-reorder when a thumbnail is dropped', async () => {
+    const el = await fixture<RRThumbnailBar>(html`
+      <rr-thumbnail-bar .images=${['img1.jpg', 'img2.jpg']}></rr-thumbnail-bar>
+    `);
+    const wrappers = el.shadowRoot!.querySelectorAll('.thumbnail-wrapper');
+    
+    // Simulate drag and drop
+    const dragStartEvent = new Event('dragstart', { 
+      bubbles: true,
+      composed: true
+    });
+    (dragStartEvent as any).dataTransfer = {
+      effectAllowed: '',
+      setData: () => {}
+    };
+    wrappers[0].dispatchEvent(dragStartEvent);
+    
+    const dropEvent = new Event('drop', { 
+      bubbles: true,
+      composed: true
+    });
+    (dropEvent as any).preventDefault = () => {};
+    setTimeout(() => wrappers[1].dispatchEvent(dropEvent));
+    
+    const ev = await oneEvent(el, 'rr-image-reorder');
+    expect(ev.detail.from).to.equal(0);
+    expect(ev.detail.to).to.equal(1);
+  });
 });

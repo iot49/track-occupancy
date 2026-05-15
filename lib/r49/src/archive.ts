@@ -89,6 +89,17 @@ export class R49Archive {
     }
   }
 
+  /**
+   * Reorders images in the manifest.
+   */
+  reorderImages(fromIndex: number, toIndex: number): void {
+    if (!this.manifest) return;
+    const images = this.manifest.images;
+    if (fromIndex < 0 || fromIndex >= images.length || toIndex < 0 || toIndex >= images.length) return;
+    const [movedImage] = images.splice(fromIndex, 1);
+    images.splice(toIndex, 0, movedImage);
+  }
+
   // TODO: Implement detector REST API storage integration
   async syncWithDetector(baseUrl: string): Promise<void> {
     console.warn('syncWithDetector not implemented yet', baseUrl);

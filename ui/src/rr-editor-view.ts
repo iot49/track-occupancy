@@ -222,6 +222,23 @@ export class RREditorView extends LitElement {
     }
   }
 
+  private _onImageReorder(e: CustomEvent) {
+    if (!this.archive) return;
+    const { from, to } = e.detail;
+    
+    // Update current index if the selected image moved or if its position shifted
+    if (this._currentImageIndex === from) {
+      this._currentImageIndex = to;
+    } else if (from < this._currentImageIndex && to >= this._currentImageIndex) {
+      this._currentImageIndex--;
+    } else if (from > this._currentImageIndex && to <= this._currentImageIndex) {
+      this._currentImageIndex++;
+    }
+
+    this.archive.reorderImages(from, to);
+    this.requestUpdate();
+  }
+
   private _onMarkerAdd(e: CustomEvent) {
     if (!this.archive) return;
     const manifest = this.archive.getManifest();
@@ -328,6 +345,7 @@ export class RREditorView extends LitElement {
               @rr-image-select=${this._onImageSelect}
               @rr-image-add=${this._onImageAdd}
               @rr-image-delete=${this._onImageDelete}
+              @rr-image-reorder=${this._onImageReorder}
             ></rr-thumbnail-bar>
           `
         }
