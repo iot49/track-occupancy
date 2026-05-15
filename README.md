@@ -1,66 +1,123 @@
-# Track Occupancy Detection
+# 🚂 Track Occupancy Detection
 
-An integrated suite of tools for model railroaders to detect track occupancy using computer vision and neural networks.
+[![Status: Active](https://img.shields.io/badge/Status-Active-brightgreen.svg)]()
+[![Stack: Fastai + Lit](https://img.shields.io/badge/Stack-Fastai%20%2B%20Lit-blue.svg)]()
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)]()
 
+An integrated, end-to-end computer vision suite for model railroaders to detect track occupancy using deep neural networks.
+
+---
 
 ## 🌟 Overview
 
-This project provides a robust, camera-based solution for track occupancy detection in model railroads. Unlike traditional sensors, this system uses overhead cameras and machine learning to identify the presence of trains at specific locations, ensuring high reliability regardless of lighting conditions or track geometry.
+This project provides a professional, camera-based solution for track occupancy detection. Moving beyond traditional infrared or current-sensing solutions, this system utilizes overhead cameras and CNN-based image classification to identify trains and rolling stock with high precision, regardless of lighting conditions or complex track geometries.
 
-## Components
+### Key Benefits
+- **High Reliability**: Robust detection even in challenging environments.
+- **Unified Logic**: Shared classification code between the edge server and the web browser.
+- **Low Latency**: Inference takes ~100ms per sample on fanless hardware.
+- **Modern UI**: A responsive, Lit-based single-page application for monitoring and configuration.
 
-* Model Railroad: `../trackplans/oval-kato.layout`
+---
 
-* RocRail:
-    * Start RocRail and open workspace `../rocrail-ws`
-    * Control Blue10
+## 🛠 Technology Stack
 
-* track-occupancy
-  * cnn
-    * TRAIN.ipynb: 
-      * run to train classifier and exports to `cnn/models`
-      * **TODO**: quantize to int8
-    * TEST-CNN.ipynb: 
-      * runs classifier on server (Kamrui Fanless PC N5100) on entire database
-      * takes ~ 100ms/sample, ~2 min total
-  * control
-    * docker stack running on server Kamrui Fanless PC N5100
-    * update with ../deploy.sh
-    * accessed at *.rails.org; dns provided by CloudFlare but access is only local (see A record in CloudFlare DNS)
-    * [Traefik](https://traefik.rails49.org)
-    * [UI](https://ui.rails49.org)
-      * fetches .r49 and live-view from server if connected
-      * edit and save .r49 files
-      * **IMPORTANT**: upload edited .r49 to server (from settings)
-    * track-occupancy: fetches images from camera and runs classifier. API:
-      * GET [Camera Snapshot](https://ui.rails49.org/api/snapshot)
-      * GET/POST [.r49 file](https://ui.rails49.org/api/r49)
-      * GET [cnn test](https://ui.rails49.org/api/test-cnn)
-    * dcc-ex-bridge:
-      * bridge dcc-ex controller between USB and MQTT and https://ui.rails49.org:2560 (rocrail, jmri, ...)
-    * mqtt broker. Classification results published by track-occupancy
-    * nginx, serves static content (ui, wasm libraries)
-      
-  * dataset
-    * CNN training and validation data
-    * raw images
-    * .r49 files
-    * extracted training data formatted for multi-label classification (labels coupler (implies train), train, track)
-  * doc
-    * legacy ... where should this go?
-  * lib
-    * classifier: unified classifier code used in ui and by server/track-occupancy detector
-    * r49 schema and parser
-    * uid: semi unique ids based on [snowflake](https://github.com/boser/snowflake)
-      * used in rr-editor-view.js with nodeid
-        * 1 = label (track, coupling, train)
-        * 2 = image files
-        * 3 = camera files
-      
-  * ui: static lit signle page web ui
+| Layer | Technologies |
+| :--- | :--- |
+| **Deep Learning** | [Fastai](https://docs.fast.ai/), [PyTorch](https://pytorch.org/), [ONNX Runtime](https://onnxruntime.ai/) |
+| **Frontend** | [Lit](https://lit.dev/), [TypeScript](https://www.typescriptlang.org/), [Vite](https://vitejs.dev/) |
+| **Backend** | [Node.js](https://nodejs.org/), [Docker](https://www.docker.com/), [MQTT](https://mqtt.org/) |
+| **Tooling** | [uv](https://github.com/astral-sh/uv), [pnpm](https://pnpm.io/), [Rsync](https://rsync.samba.org/) |
 
-  * `deploy.sh`
-    * updates the code on the server and restarts the containers
+---
 
+## 🏗 System Architecture
 
+```mermaid
+graph TD
+    CAM[Overhead Camera] -->|Snapshots| SRV[Edge Server: Intel N5100]
+    SRV -->|CNN Inference| MQTT[MQTT Broker]
+    SRV -->|Live Feed| UI[Web UI: Lit/WASM]
+    UI -->|ONNX/ORT| UI_INF[Browser Inference]
+    MQTT -->|Occupancy State| RR[RocRail / Control System]
+    DCC[DCC-EX Controller] <-->|USB/MQTT| BRIDGE[DCC-EX Bridge]
+```
 
+---
+
+## 📂 Project Structure
+
+- **`cnn/`**: Python environment for model training and validation.
+  - `TRAIN.ipynb`: Training pipeline and ONNX/ort export.
+  - `TEST-CNN.ipynb`: Performance benchmarking and validation.
+- **`ui/`**: Static single-page web application built with Lit.
+- **`control/`**: Server-side logic and Docker orchestration.
+  - `track-occupancy`: Main detection service. Reads the camera and does the cnn interference. Very CPU intensive.
+  - `dcc-ex-bridge`: MQTT/USB bridge for DCC control.
+- **`lib/`**: Shared TypeScript libraries.
+  - `@occupancy/classifier`: Unified inference wrapper (Server/Browser).
+  - `@occupancy/r49`: Schema and parser for railroad configuration.
+  - `@occupancy/uid`: Snowflake-based unique ID generation.
+    - `nodeid 1`: Labels (track, coupling, train)
+    - `nodeid 2`: Image files
+    - `nodeid 3`: Camera configuration files
+- **`dataset/`**: Training data, labels, and `.r49` layout definitions.
+
+---
+
+## 🚀 Development Workflow
+
+### 1. Model Training
+Managed via `uv` in the `cnn/` directory.
+```bash
+cd cnn
+uv run jupyter notebook
+```
+- Open `TRAIN.ipynb` and choose `Run All` to train the classifier.
+- Models are exported to `cnn/models/` in ONNX format for cross-platform compatibility.
+
+### 2. Frontend Development
+Managed via `pnpm` in the workspace root.
+```bash
+pnpm install
+cd ui
+pnpm dev
+```
+
+### 3. Deployment
+The system is designed for deployment to a fanless Intel N5100 server running Ubuntu.
+```bash
+./deploy.sh
+```
+This script synchronizes code, builds UI assets, and restarts the Docker stack.
+
+---
+
+## 📡 API Reference
+
+The edge server provides the following endpoints (accessible via `ui.rails49.org`):
+
+| Endpoint | Method | Description |
+| :--- | :--- | :--- |
+| [/api/snapshot](https://ui.rails49.org/api/snapshot) | `GET` | Retrieve the latest camera snapshot. |
+| [/api/r49](https://ui.rails49.org/api/r49) | `GET/POST` | Fetch or update layout configuration (.r49). |
+| [/api/test-cnn](https://ui.rails49.org/api/test-cnn) | `GET` | Run a diagnostic test of the classifier. Used by `TEST-CNN.ipynb`. |
+| [/api/sensors](https://ui.rails49.org/api/sensors) | `GET` | Retrieve server health and sensor statistics. `node` runs the classifier, `ffmpeg` aquires images from the camera, both in the track-occuppancy detector. |
+
+---
+
+## 🖥 Server Management
+
+- **Hardware**: Intel N5100 (Kamrui Fanless PC) running Ubuntu.
+- **Access**: `ssh blocks` to login to the primary server.
+- **Dashboard**: Traefik dashboard available at [traefik.rails49.org](https://traefik.rails49.org).
+- **Control**: All services are managed via Docker Compose within the `control/` stack.
+
+> [!IMPORTANT]
+> When editing `.r49` files in the UI, remember to **upload the edited file to the server** via the Settings menu to apply changes to the live detection engine.
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.

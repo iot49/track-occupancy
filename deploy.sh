@@ -35,7 +35,9 @@ rsync -avzR -c --delete \
   --exclude 'node_modules' \
   --exclude '.git' \
   --exclude 'control/data/layout.r49' \
-  control/ lib/ ui/dist/ dataset/data/ cnn/models/ \
+  --exclude 'cnn/models/*.pth' \
+  --exclude 'cnn/models/*.onnx' \
+  control/ lib/ ui/dist/ dataset/data/ cnn/models \
   package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json tsconfig.base.json \
   "$REMOTE_HOST:$REMOTE_DIR/"
 

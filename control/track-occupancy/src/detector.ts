@@ -37,11 +37,11 @@ export async function loadR49(r49Path: string, modelPath: string, configPath: st
   const archive = await R49Archive.load(data);
   const manifest = archive.getManifest();
 
-  // Collect all labelled detection points from all images
+  // Collect all labelled detection points from only the FIRST image
   const labels: DetectorState['labels'] = [];
-  for (const img of manifest.images) {
-    if (!img.labels) continue;
-    for (const [id, marker] of Object.entries(img.labels as Record<string, Marker>)) {
+  const firstImage = manifest.images[0];
+  if (firstImage?.labels) {
+    for (const [id, marker] of Object.entries(firstImage.labels as Record<string, Marker>)) {
       labels.push({ id, type: marker.type, x: marker.x, y: marker.y });
     }
   }

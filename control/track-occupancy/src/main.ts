@@ -6,6 +6,7 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import fs from 'fs';
 import { CameraService } from './camera.ts';
+import os from 'os';
 
 const execAsync = promisify(exec);
 
@@ -48,6 +49,8 @@ async function main() {
   // ---------------------------------------------------------------------------
   const camera = new CameraService();
   await camera.start();
+
+  let running = false; // Shared lock between live detection and API tests
 
   // ---------------------------------------------------------------------------
   // REST API for snapshots
@@ -107,6 +110,90 @@ async function main() {
     } catch (err) {
       console.error('[detector] Upload error:', err);
       res.status(500).send(`Upload error: ${String(err)}`);
+    }
+  });
+
+  // GET /api/sensors - System health metrics (temp, clock, disk)
+  app.get('/api/sensors', async (req, res) => {
+    try {
+      // 1. Temperature (milli-Celsius to Celsius)
+      let temp = 0;
+      try {
+        const zones = fs.readdirSync('/sys/class/thermal').filter(d => d.startsWith('thermal_zone'));
+        let maxTemp = 0;
+        for (const zone of zones) {
+          try {
+            const t = parseInt(fs.readFileSync(`/sys/class/thermal/${zone}/temp`, 'utf8'), 10);
+            if (t > maxTemp) maxTemp = t;
+          } catch (e) { /* Skip unreadable zones */ }
+        }
+        temp = maxTemp / 1000;
+      } catch (e) { /* Fallback */ }
+
+      // 2. CPU Speed (Average MHz)
+      let mhz = 0;
+      try {
+        const cpuInfo = fs.readFileSync('/proc/cpuinfo', 'utf8');
+        const speeds = cpuInfo.match(/cpu MHz\s+:\s+([\d.]+)/g);
+        if (speeds) {
+          const sum = speeds.reduce((acc, s) => acc + parseFloat(s.split(':')[1]), 0);
+          mhz = Math.round(sum / speeds.length);
+        }
+      } catch (e) { /* Fallback */ }
+
+      // 3. Disk Usage
+      let disk = { total: 'N/A', used: 'N/A', percent: 'N/A' };
+      try {
+        const { stdout } = await execAsync('df -h / | tail -1');
+        const parts = stdout.trim().split(/\s+/);
+        disk = { total: parts[1], used: parts[2], percent: parts[4] };
+      } catch (e) { /* Fallback */ }
+
+      // 4. Container Stats (requires docker.sock mount)
+      const containers: Record<string, any> = {};
+      try {
+        const { stdout } = await execAsync('docker stats --no-stream --format "{{.Name}}|{{.CPUPerc}}|{{.MemUsage}}|{{.MemPerc}}|{{.NetIO}}"');
+        stdout.trim().split('\n').forEach(line => {
+          const [name, cpu, mem, memPerc, net] = line.split('|');
+          if (name) {
+            containers[name] = { cpu, memory: mem, memPerc, net };
+          }
+        });
+      } catch (e) { /* Might fail if docker isn't installed or socket not mounted */ }
+
+      // 5. Local Process Breakdown (top CPU consumers)
+      const processes: Array<{ name: string; cpu: string; mem: string }> = [];
+      try {
+        // Use ps for more reliable parsing of top processes
+        const { stdout } = await execAsync('ps -eo comm,%cpu,%mem --sort=-%cpu | head -n 11');
+        const lines = stdout.trim().split('\n').slice(1); // Skip header
+        lines.forEach(line => {
+          const parts = line.trim().split(/\s+/);
+          if (parts.length >= 3) {
+            processes.push({ 
+              name: parts[0], 
+              cpu: `${parseFloat(parts[1]).toFixed(1)}%`,
+              mem: `${parseFloat(parts[2]).toFixed(1)}%`
+            });
+          }
+        });
+      } catch (e) { /* Fallback */ }
+
+      res.json({
+        cpu: {
+          temp: `${temp.toFixed(1)}°C`,
+          speed: `${mhz}MHz`,
+          load: os.loadavg().map(l => l.toFixed(2)).join(', '),
+        },
+        containers,
+        processes,
+        disk,
+        uptime: `${Math.round(os.uptime() / 3600)} hours`,
+        timestamp: new Date().toISOString()
+      });
+    } catch (err) {
+      console.error('[detector] Sensors error:', err);
+      res.status(500).json({ error: 'Failed to read sensors' });
     }
   });
 
@@ -244,7 +331,6 @@ async function main() {
   await reloadDetector();
 
   // Detection loop
-  let running = false;
   const interval = setInterval(async () => {
     if (running) return;   // skip if previous iteration is still in progress
     running = true;

@@ -86,6 +86,7 @@ services:
       - ./data:/data
       - ../cnn/models:/models:ro
       - ../dataset/data:/dataset/data:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
       # Mount source code for fast development
       - ./track-occupancy/src:/repo/control/track-occupancy/src
       - ../lib/r49/src:/repo/lib/r49/src
