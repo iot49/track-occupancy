@@ -192,9 +192,6 @@ export class RRLiveView extends LitElement {
       }
 
       this._markers = newMarkers;
-      if (this._markers.length > 0 && Math.random() < 0.01) {
-        console.log('Classification loop running, last result:', newMarkers[0].status);
-      }
     }
 
     this._latency = performance.now() - startTime;
