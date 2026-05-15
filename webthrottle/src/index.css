@@ -1,0 +1,74 @@
+/* ── Reset & Global ─────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --wt-font: 'Inter', system-ui, sans-serif;
+  --wt-bg: #1e2128;         /* Lighter navy-slate */
+  --wt-surface: #2d333b;    /* Visible surface */
+  --wt-surface-raised: #373e47;
+  --wt-border: #444c56;     /* Higher contrast border */
+  --wt-text: #f0f3f6;
+  --wt-text-dim: #9099a4;
+  --wt-accent: #58a6ff;     /* Brighter blue */
+  --wt-accent-glow: rgba(88, 166, 255, 0.3);
+  --wt-green: #3fb950;
+  --wt-amber: #d29922;
+  --wt-red: #f85149;
+  --wt-red-glow: rgba(248, 81, 73, 0.4);
+  --wt-radius: 16px;
+  --wt-radius-sm: 10px;
+  --wt-transition: 0.2s ease;
+}
+
+html {
+  height: 100dvh;
+  width: 100dvw;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  background: #0d1117;
+  color: var(--wt-text);
+  font-family: var(--wt-font);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  height: 100dvh;
+  width: 100dvw;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0d1117;
+}
+
+/* App container: max 10cm wide, 18cm tall, centered, no overflow */
+wt-app {
+  display: flex;
+  flex-direction: column;
+  /* Physical size caps; shrink to viewport if smaller */
+  width: min(10cm, 100dvw);
+  height: min(18cm, 100dvh);
+  overflow: hidden;
+  /* 1em inner padding so content never touches the edge.
+     Safe-area insets handle iPhone notch / home bar. */
+  padding: max(1em, env(safe-area-inset-top))
+           max(1em, env(safe-area-inset-right))
+           max(1em, env(safe-area-inset-bottom))
+           max(1em, env(safe-area-inset-left));
+  box-sizing: border-box;
+  gap: 16px;
+  background: var(--wt-bg);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+  border-radius: min(28px, 4vw);
+  border: 1px solid var(--wt-border);
+}

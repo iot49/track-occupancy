@@ -4,6 +4,7 @@ packages:
   - "ui"
   - "control/track-occupancy"
   - "control/dcc-ex-bridge"
+  - "webthrottle"
 allowBuilds:
   "@serialport/bindings-cpp": true
   esbuild: true

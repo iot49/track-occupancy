@@ -62,6 +62,7 @@ graph TD
     - `nodeid 2`: Image files
     - `nodeid 3`: Camera configuration files
 - **`dataset/`**: Training data, labels, and `.r49` layout definitions.
+- **`webthrottle/`**: Simple throttle that runs in the browser at https://throttle.rails49.org
 
 ---
 
@@ -114,6 +115,15 @@ The edge server provides the following endpoints (accessible via `ui.rails49.org
 - **Control**: All services are managed via Docker Compose within the `control/` stack.
 
 ---
+
+
+
+## Router Configuration (FritzBox)
+
+Disable Rebind Protection: got to Network > Network Settings > Change Advanced Network Settings and add the domain (e.g. throttle.rails49.org) to the list. Then click Apply.
+
+![alt text](images/README/image.png)
+
 
 ## 📄 License
 
