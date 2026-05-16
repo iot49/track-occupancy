@@ -54,6 +54,7 @@ graph TD
 - **`control/`**: Server-side logic and Docker orchestration.
   - `track-occupancy`: Main detection service. Reads the camera and does the cnn interference. Very CPU intensive.
   - `dcc-ex-bridge`: MQTT/USB bridge for DCC control.
+  - `rocview-server`: Rocrail server, connect to it from rocrail clients (e.g. Rocview) at rocrail.rails49.org:8051. The Server Monitor is at https://rocrail.rails49.org/.
 - **`lib/`**: Shared TypeScript libraries.
   - `@occupancy/classifier`: Unified inference wrapper (Server/Browser).
   - `@occupancy/r49`: Schema and parser for railroad configuration.

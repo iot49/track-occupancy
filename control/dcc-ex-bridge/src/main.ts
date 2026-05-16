@@ -133,6 +133,17 @@ class DCCExBridge {
       return;
     }
 
+    // Gemini is Making this up. Keeping comment for now, but verified that things work without.
+    // Rewrite <1 MAIN> to <1> to avoid Power SC (Power State Conflict) 
+    // in newer DCC-EX firmware versions.
+    /*
+    if (cmd === '<1 MAIN>') {
+      cmd = '<1>';
+    } else if (cmd === '<0 MAIN>') {
+      cmd = '<0>';
+    }
+    */
+    
     console.log(`-> ${cmd}`);
     this.serial.write(cmd, (err: Error | null | undefined) => {
       if (err) console.error('Serial write error:', err.message);

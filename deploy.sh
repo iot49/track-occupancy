@@ -48,6 +48,7 @@ rsync -avzR -c --delete \
   --exclude 'node_modules' \
   --exclude '.git' \
   --exclude 'control/data/' \
+  --exclude 'control/rocview-server/workspace/' \
   --exclude 'cnn/models/*.pth' \
   --exclude 'cnn/models/*.onnx' \
   control/ lib/ ui/dist/ webthrottle/dist/ dataset/data/ cnn/models \

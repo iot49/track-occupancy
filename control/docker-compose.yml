@@ -9,6 +9,9 @@ services:
       - "443:443"
       - "8883:8883"
       - "2560:2560"
+      # - "8051:8051"
+
+
     environment:
       - CF_DNS_API_TOKEN
       - CF_API_EMAIL
@@ -132,6 +135,34 @@ services:
       - SERIAL_PORT=/dev/ttyUSB0
     depends_on:
       - mqtt
+    restart: always
+
+  # ── Rocrail Server ────────────────────────────────────────────────────────
+  rocrail:
+    container_name: rocrail
+    build:
+      context: ./rocview-server
+    ports:
+      - "8051:8051"
+
+    labels:
+      - "traefik.enable=true"
+      # Server Monitor
+      - "traefik.http.routers.rocrail-server-monitor.rule=Host(`rocrail.rails49.org`)"
+      - "traefik.http.routers.rocrail-server-monitor.entrypoints=websecure"
+      - "traefik.http.routers.rocrail-server-monitor.tls.certresolver=myresolver"
+      - "traefik.http.routers.rocrail-server-monitor.middlewares=local-only@file"
+      - "traefik.http.services.rocrail-server-monitor.loadbalancer.server.port=8008"
+      # Rocview Client (TCP) - Now exposed directly via ports mapping
+      # - "traefik.tcp.routers.rocview.rule=HostSNI(`*`)"
+      # - "traefik.tcp.routers.rocview.entrypoints=rocview"
+      # - "traefik.tcp.routers.rocview.middlewares=local-only-tcp@file"
+      # - "traefik.tcp.services.rocview.loadbalancer.server.port=8051"
+
+    volumes:
+      - ./rocview-server/workspace:/workspace
+    depends_on:
+      - dcc-ex-bridge
     restart: always
 
 volumes:

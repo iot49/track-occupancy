@@ -19,6 +19,9 @@ entryPoints:
   dcc:
     # DCC-EX TCP port — used by Rocrail/JMRI connecting from a remote host
     address: ":2560"
+  rocview:
+    # Rocview client port
+    address: ":8051"
 
 providers:
   docker:

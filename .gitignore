@@ -6,7 +6,6 @@
 .gemini
 
 # Various
-.*_hash
 TODO.md
 doc
 
@@ -17,7 +16,7 @@ __pycache__
 
 # Build artifacts
 dist/
-.ui_build_hash
+.*_hash
 
 # Assistant files
 GEMINI.md

@@ -2,6 +2,12 @@
 
 A Lit-based single-page application that provides a virtual DCC throttle in the browser, enabling wireless locomotive control through the existing Rails49 MQTT infrastructure.
 
+**FUTURE IMPROVEMENTS (todo)**
+
+* loco momentum (should be handled by loco decoder, program CVs appropriately)
+* loco database with pictures 
+
+
 ## Overview
 
 WebThrottle replaces the need for a dedicated hardware throttle by turning any browser (phone, tablet, laptop) into a fully functional DCC controller. It communicates with the DCC-EX command station through the [DCC-EX Bridge](../control/dcc-ex-bridge/), using MQTT over Secure WebSockets — the same messaging backbone that powers the rest of the Rails49 stack.
