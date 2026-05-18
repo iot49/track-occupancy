@@ -48,7 +48,7 @@ services:
 
   # ── nginx — serves the built Lit UI (../ui/dist) ─────────────────────────
   nginx:
-    container_name: nginx
+    container_name: nginx-ui
     image: nginx:alpine
     labels:
       - "traefik.enable=true"

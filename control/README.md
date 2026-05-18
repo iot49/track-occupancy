@@ -10,12 +10,12 @@ Rails49 uses a microservices architecture managed by Docker Compose. Traefik act
 
 ### Hardware & OS (Server)
 
-* **Mini PC**: KAMRUI JK06 Fanless Mini PC
+* **Edge Server**: presently a KAMRUI JK06 Fanless Mini PC
   * Intel 11th Gen N5100, 8GB DDR4, 256GB ROM, Dual WiFi / LAN / USB 3.0 / Type C
 * **Operating System**: Ubuntu
-* **Access**: `ssh blocks`
+* **Access**: `ssh rails49`
   ```ssh-config
-  Host blocks
+  Host rails49
       HostName blocks49.local
       User ttmetro
   ```
@@ -38,99 +38,47 @@ Also disable DNS Rebind Protection on the Router (e.g. FritzBox):
 
 ## Services
 
-### Traefik (Gateway)
-
-Dynamic reverse proxy and TLS termination.
-
-* **Routing**: Subdomain-based (`ui.rails49.org`, `mqtt.rails49.org`, …).
-* **SSL**: Wildcard certificate via Cloudflare DNS-01 challenge.
-* **Dashboard**: `https://traefik.rails49.org`
-* **Ports**: 80 (→ 443 redirect), 443 (HTTPS/WSS), 8883 (MQTTS), 2560 (DCC-EX TCP)
-
-Config files: [`traefik/traefik.yaml`](traefik/traefik.yaml), [`traefik/dynamic_conf.yaml`](traefik/dynamic_conf.yaml)
+### 🎛️ [Traefik Gateway](traefik/README.md)
+Dynamic reverse proxy, TLS termination, and subdomain router managing secure local connection entrypoints (HTTPS, WSS, MQTTS, TCP).
+*   **Detailed Documentation**: [Traefik Gateway Guide](traefik/README.md)
+*   **Key Configs**: [`traefik/traefik.yaml`](traefik/traefik.yaml) (static), [`traefik/dynamic_conf.yaml`](traefik/dynamic_conf.yaml) (dynamic/security whitelist).
 
 ---
 
-### MQTT (NanoMQ)
-
-The primary messaging backbone.
-
-* `mqtt.rails49.org:8883` — native MQTT over TLS (for native clients)
-* `wss://mqtt.rails49.org:443` — MQTT over Secure WebSockets (for browser UI)
-* `mqtt://localhost:1883` — plain MQTT on the LAN (container-to-container)
-
-Config: [`mqtt/nanomq.conf`](mqtt/nanomq.conf)
-
-```
-mosquitto_sub -h mqtt.rails49.org -p 8883 -t "#"                -v --cafile /etc/ssl/cert.pem
-mosquitto_sub -h mqtt.rails49.org -p 8883 -t "rails49/dcc-ex/#" -v --cafile /etc/ssl/cert.pem
-
-mosquitto_pub -h mqtt.rails49.org -p 8883 -t "rails49/dcc-ex/cmd" -m "<s>" --cafile /etc/ssl/cert.pem
-mosquitto_pub -h mqtt.rails49.org -p 8883 -t "rails49/dcc-ex/cmd" -m "<s>" --cafile /etc/ssl/cert.pem
-
-mosquitto_pub -h mqtt.rails49.org -p 8883 -t "rails49/dcc-ex/cmd" -m "<t 10 0 0>" --cafile /etc/ssl/cert.pem
-mosquitto_pub -h mqtt.rails49.org -p 8883 -t "rails49/dcc-ex/cmd" -m "<t 10 12 0>" --cafile /etc/ssl/cert.pem
-
-```
+### 📡 [MQTT Broker (NanoMQ)](mqtt/README.md)
+The central messaging backbone routing real-time status and control commands between all services over native TCP and secure WebSockets.
+*   **Detailed Documentation**: [MQTT Broker Guide](mqtt/README.md)
+*   **Key Config**: [`mqtt/nanomq.conf`](mqtt/nanomq.conf).
 
 ---
 
-### nginx (UI)
-
-Serves the pre-built Lit UI from `../ui/dist` at `https://ui.rails49.org`.
-
-`https://rails49.org` redirects to `https://ui.rails49.org`.
-
-Build the UI first:
-```bash
-cd ../..
-pnpm run build
-```
-
-Config: [`nginx/Dockerfile`](nginx/Dockerfile)
+### 🌐 [nginx Web UI & WebThrottle Servers](nginx/README.md)
+Serves the pre-compiled static Single Page Applications (SPAs) for the main monitoring/configuration UI and browser-based WebThrottle.
+*   **Detailed Documentation**: [Nginx Servers Guide](nginx/README.md)
+*   **Key Config**: [`nginx/default.conf`](nginx/default.conf).
 
 ---
 
-### Track Occupancy Detector
-
-TypeScript service (`@occupancy/detector`) that:
-
-1. Loads an `.r49` layout file (defines detection-point geometry and scale).
-2. Periodically fetches a JPEG frame from an IP camera or USB camera endpoint.
-3. Classifies each detection point using the ONNX model (`@occupancy/classifier/node`).
-4. Publishes results to `rails49/occupancy/status` on MQTT.
-5. API:
-    * GET /api/snapshot: camera snapshot
-    * GET/POST /api/r49: load/save r49 file used by classifier
-
-**TODO**: update - remove unused variables, and add the ones actually used, and ones missing, e.g. DOMAIN=rails49.org
-
-**Key environment variables** (see [`.env.example`](.env.example)):
-
-| Variable | Default | Description |
-|---|---|---|
-| `MQTT_HOST` | `mqtt` | MQTT broker hostname |
-| `R49_PATH` | `/data/layout.r49` | Path to the .r49 layout file |
-| `MODEL_PATH` | `/data/model.ort` | Path to the ONNX model |
-| `CAMERA_URL` | *(empty)* | HTTP snapshot URL of the camera |
-| `INTERVAL_MS` | `1000` | Detection interval in milliseconds |
-
-Source: [`track-occupancy/src/`](track-occupancy/src/)
+### 🎥 [Track Occupancy Detector](track-occupancy/README.md)
+High-performance TypeScript backend that handles camera video acquisition, parallelized ONNX Deep Learning classifier runs on layouts, and MQTT occupancy state updates.
+*   **Detailed Documentation & REST API Reference**: [Track Occupancy Detector Guide](track-occupancy/README.md)
+*   **Key Source**: [`track-occupancy/src/`](track-occupancy/src/).
 
 ---
 
-### DCC-EX Bridge
+### 🔌 [DCC-EX Bridge](dcc-ex-bridge/README.md)
+A Command-Aware Multiplexer that connects the physical DCC-EX Controller over USB serial, hosting a raw TCP socket and translation bridge to MQTT command topics.
+*   **Detailed Documentation & MQTT Topic Reference**: [DCC-EX Bridge Guide](dcc-ex-bridge/README.md)
+*   **Key Source**: [`dcc-ex-bridge/`](dcc-ex-bridge/).
 
-Bridges the DCC-EX command station (USB serial `/dev/ttyUSB0`) with MQTT and a raw
-TCP socket on port 2560 (for Rocrail / JMRI).
+---
 
-This service acts as a **Command-Aware Multiplexer**. It buffers data from each client independently and only forwards complete `<...>` packets to the serial port, ensuring that commands from multiple sources never interleave or get garbled.
+### 🚂 [Rocrail Server](rocview-server/README.md)
+Persistently mounted Rocrail control workspace with integrated cron jobs for nightly configuration and layout XML git backups.
+*   **Detailed Documentation & Troubleshooting**: [Rocrail Server Guide](rocview-server/README.md)
+*   **Key Workspace**: [`rocview-server/workspace/`](rocview-server/workspace/).
 
-* **TCP Server**: `dcc-ex.rails49.org:2560` (native DCC-EX protocol)
-* **MQTT Commands**: Subscribe to `rails49/dcc-ex/cmd`
-* **MQTT Status**: Published to `rails49/dcc-ex/status/<OPCODE>` and `rails49/dcc-ex/status/raw`
 
-Config: [`dcc-ex-bridge/`](dcc-ex-bridge/)
 
 ---
 

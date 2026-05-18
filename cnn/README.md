@@ -1,46 +1,38 @@
-# CNN Track Occupancy Classifier
+# 🧠 CNN Track Occupancy Classifier
 
-This directory contains the machine learning pipeline for training the track occupancy classifier.
+This directory contains the machine learning pipeline for training, validating, and testing the track occupancy classifier.
 
-## Training Cycle Instructions
+## 🚀 Machine Learning Pipeline
 
-<span style="color:red">**Note:** `TRAIN.ipynb` propvides an interactive experience.</span>
-
-Follow these steps in order to prepare data, train the model, analyze its performance, and export it for deployment.
+The track occupancy detection workflow is modular and spans multiple directories in this repository. Follow the steps below in order:
 
 ### 1. Data Preparation
-**Command:** `cd ../dataset && pnpm run prep && cd ../cnn` (run from the `dataset/` directory)
-*   **What it does:** Scans the `dataset/r49/` directory for `.r49` archives, extracts 136x136 image crops for every labeled marker, and performs a deterministic 80/20 train/validation split using hashing.
-*   **Output:** Populates `dataset/db/train/` and `dataset/db/val/` with labeled JPEG images organized into class folders.
-*   **Verification:** You can run `uv run bin/visualize_data.py` (in the `cnn/` directory) to see a sample of the augmented 96x96 patches in `results/data_samples.png`.
+Before training, you must extract training image crops from `.r49` railroad layout archives.
+* **Location**: [dataset/](../dataset)
+* **Action**: Run `pnpm run prep` in the dataset folder to scan the `.r49` layout files, extract 136x136 image crops, and split them deterministically (80/20) into a training/validation database in `db/`.
+* **Documentation**: See the [Dataset Preparation Guide](../dataset/README.md) for more details.
 
-### 2. Model Training
-**Command:** `uv run bin/train.py` (run from this directory)
-*   **What it does:** Trains a ResNet-18 model on the prepared dataset. It applies random rotations, color jitter, and flips before center-cropping to 96x96. The script automatically resumes from the latest checkpoint if one exists.
-*   **Output:** 
-    *   `checkpoints/latest.pt`: The model state from the most recent epoch.
-    *   `checkpoints/best.pt`: The model state with the highest validation accuracy.
-*   **Interpretation:** Watch the `Acc` (Accuracy) and `Loss` metrics. A successful training run should see loss decreasing and accuracy increasing over time.
+### 2. Model Training & Export
+Train the model and export it to cross-platform runtime formats.
+* **Notebook**: [TRAIN.ipynb](TRAIN.ipynb)
+* **Action**: Run all cells in `TRAIN.ipynb` to train a ResNet-18 model on the prepared dataset, evaluate its metrics, and export the trained model into optimized ONNX/ORT formats (`model.ort` and `config.json`) saved in the [models/](models) folder.
 
-### 3. Diagnostics & Insights
-**Command:** `uv run bin/diagnostics.py` (run from this directory)
-*   **What it does:** Evaluates the `best.pt` model on the validation set and generates visualization tools in the `results/` folder.
-*   **Output:**
-    *   `results/confusion_matrix.png`: Shows exactly which classes the model is confusing.
-    *   `results/top_losses.png`: Displays the 9 images where the model was most confidently wrong.
-    *   `results/filters.png`: Visualizes the weights of the first convolutional layer.
-*   **Interpretation:** Look for a strong diagonal in the confusion matrix.
+### 3. Model Deployment
+Deploy the new models to both backend services and frontend browser clients.
+* **Action**: Run the root deployment script `./deploy.sh` to sync the updated workspace to the edge server.
+* **Backend Detector**: The TS detector service mounts the [models/](models) directory persistently to run real-time server-side ONNX classification. See the [Track Occupancy Detector Guide](../control/track-occupancy/README.md) for details.
+* **Frontend Web UI**: The frontend build process automatically copies the contents of [models/](models) to the web bundle to support client-side ONNX runtime execution in the browser. See the [Web UI Guide](../ui/README.md) for details.
 
-### 4. Model Export
-**Command:** `uv run bin/export.py` (run from this directory)
-*   **What it does:** Converts the PyTorch `best.pt` checkpoint into ONNX and optimized ORT formats compatible with the web UI.
-*   **Output:**
-    *   `checkpoints/model.ort`: The optimized model for deployment in the browser.
-    *   `checkpoints/config.json`: A configuration file containing class names, target DPT, and crop size.
-*   **Usage:** Copy these two files into the UI assets folder to deploy the new model.
+### 4. Remote Diagnostic Verification
+Validate the performance and accuracy of the deployed model against live benchmarks.
+* **Notebook**: [TEST-CNN.ipynb](TEST-CNN.ipynb)
+* **Action**: Run the cells in `TEST-CNN.ipynb` to trigger a remote diagnostic test via the edge server's test endpoint (`https://ui.rails49.org/api/test-cnn`) and inspect the classification accuracy, confusion matrices, and filters of the active production model.
 
-## Directory Structure
-- `bin/`: Executable scripts for training and diagnostics.
-- `src/`: Core library code and dataset definitions.
-- `results/`: Output visualizations and analysis results.
-- `checkpoints/`: Model weights and exported ONNX/ORT files.
+---
+
+## 📂 Folder Contents
+
+* **[models/](models)**: Output directory for PyTorch (`.pth`), ONNX (`.onnx`), and Web-Optimized (`.ort`) models, along with their label mappings (`config.json`).
+* **[src/](src)**: Python source code, utility classes, and custom helper methods used within the notebooks.
+* **[pyproject.toml](pyproject.toml)**: Dependency specification for `uv` (FastAI, PyTorch, ONNX runtime, etc.).
+

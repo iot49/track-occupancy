@@ -52,7 +52,7 @@ rsync -avzR -c --delete \
   --exclude 'cnn/models/*.pth' \
   --exclude 'cnn/models/*.onnx' \
   control/ lib/ ui/dist/ webthrottle/dist/ dataset/data/ cnn/models \
-  package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json tsconfig.base.json \
+  package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json tsconfig.base.json backup-rocrail-workspace.sh \
   "$REMOTE_HOST:$REMOTE_DIR/"
 
 # 4. Remote Execution

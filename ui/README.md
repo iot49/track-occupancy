@@ -1,33 +1,6 @@
-# UI Rewrite Plan
+# UI 
 
-Migrate `legacy-ui/` to a clean, modular Lit Element application in `ui/`.
-
-## Goals
-
-1. Use `@occupancy/r49` (lib/r49) for all .r49 file management
-2. Eliminate code duplication between editor and live views
-3. Small, focused components with clear interfaces
-4. Remove OpenCV dependency (perspective transform) — the new classifier handles scaling directly
-5. Consistent marker rendering across all views (edit and live)
-
----
-
-## Issues in Legacy UI
-
-| Problem | Where | Impact |
-|---|---|---|
-| Markers render at different sizes in editor vs live view | `rr-label.ts` vs `rr-live-view.ts` | Confusing UX — same label looks different |
-| Image placed *inside* SVG in editor but *behind* SVG in live view | `rr-label.ts:279` vs `rr-live-view.ts:297` | Root cause of scaling mismatch |
-| `rr-main.ts` is a hand-rolled router with manual context cloning | `rr-main.ts:24-40` | Fragile; every state change creates a new `R49File` instance |
-| `Manifest` extends `EventTarget` to trigger reactivity | `manifest.ts` | Bypasses Lit's reactive system; error-prone |
-| `R49File` duplicates JSZip logic that `@occupancy/r49` already handles | `r49file.ts` | Maintenance burden |
-| OpenCV loaded from CDN for perspective transform only | `manifest.ts:246-306` | ~8MB dependency for a matrix multiply |
-| `rr-label.ts` is 449 lines handling rendering, dragging, validation, and classification | `rr-label.ts` | Untestable monolith |
-| Inline styles throughout templates | multiple files | Violates project rules, hard to maintain |
-| `rr-settings.ts` stores classifier config in the manifest | `rr-settings.ts:274` | Wrong separation of concerns |
-| `classify.ts` and `classifier.ts` are redundant partial implementations | `app/` | Confusing which one to use |
-
----
+UI for coniguring track occupancy detection. Also provides a life view for real time observation of track occupancy.
 
 ## Naming Conventions
 
@@ -117,11 +90,6 @@ rr-app                          ← top-level shell, context providers
 **Properties** (from context):
 - `r49Archive`
 - `classifier`
-
-**TODO:** Replace `classifier` settings tab with `server` with a single field to set the server url (https://ui.rails49.org). If the server is available:
-1) Layout pictures (both in editor and live view) are taken from the server at /api/snapshot.
-2) .r49 files are loaded/saved to the server at /api/r49.
-Also add in indication to the top bar showing the ui is connected to the server.
 
 **Behavior**:
 - Layout tab: name, scale, calibration dimensions

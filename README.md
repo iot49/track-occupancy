@@ -1,22 +1,22 @@
-# 🚂 Track Occupancy Detection
+# 🚂 Modelrailroad Track Occupancy Detection
 
 [![Status: Active](https://img.shields.io/badge/Status-Active-brightgreen.svg)]()
 [![Stack: Fastai + Lit](https://img.shields.io/badge/Stack-Fastai%20%2B%20Lit-blue.svg)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)]()
 
-An integrated, end-to-end computer vision suite for model railroaders to detect track occupancy using deep neural networks.
+A computer vision suite for model railroaders to detect track occupancy using deep neural networks.
 
 ---
 
 ## 🌟 Overview
 
-This project provides a professional, camera-based solution for track occupancy detection. Moving beyond traditional infrared or current-sensing solutions, this system utilizes overhead cameras and CNN-based image classification to identify trains and rolling stock with high precision, regardless of lighting conditions or complex track geometries.
+This project provides a camera-based solution for track occupancy detection based on overhead cameras and CNN-based image classification to identify trains and rolling stock with high precision.
 
-### Key Benefits
-- **High Reliability**: Robust detection even in challenging environments.
-- **Unified Logic**: Shared classification code between the edge server and the web browser.
-- **Low Latency**: Inference takes ~100ms per sample on fanless hardware.
-- **Modern UI**: A responsive, Lit-based single-page application for monitoring and configuration.
+### Key Features
+- **High Reliability**: Accurate train detection even in challenging environments.
+- **Server Based Architecture**: Individual features are deployed as microservices in Docker containers on an edge server.
+- **Single Page Web UI**: A responsive, Lit-based single-page application for monitoring and configuration.
+- **Domain and DNS managed by Cloudflare**: Fully secure local HTTPS subdomains (e.g. `rails49.org`) without external port forwarding.
 
 ---
 
@@ -33,98 +33,97 @@ This project provides a professional, camera-based solution for track occupancy 
 
 ## 🏗 System Architecture
 
+The entire system is managed via Docker Compose on an edge server. The architecture consists of interfaces, the edge server stack, and physical model railroad hardware.
+
+For detailed configurations of DNS, proxy, SSL, and network administration, see the [Docker Control Stack Documentation](control/README.md).
+
+### Service Architecture & Mappings
+
 ```mermaid
 graph TD
-    CAM[Overhead Camera] -->|Snapshots| SRV[Edge Server: Intel N5100]
-    SRV -->|CNN Inference| MQTT[MQTT Broker]
-    SRV -->|Live Feed| UI[Web UI: Lit/WASM]
-    UI -->|ONNX/ORT| UI_INF[Browser Inference]
-    MQTT -->|Occupancy State| RR[RocRail / Control System]
-    DCC[DCC-EX Controller] <-->|USB/MQTT| BRIDGE[DCC-EX Bridge]
+    %% Service Interfaces above
+    subgraph Interfaces ["Service Interfaces"]
+        UI_IF["HTTPS: ui.DOMAIN"]
+        THROTTLE_IF["HTTPS: throttle.DOMAIN"]
+        ROCRAIL_IF["HTTPS: rocrail.DOMAIN"]
+        MQTT_IF["WSS: mqtt.DOMAIN"]
+        OCC_IF["MQTT Status Topic"]
+        BRIDGE_IF["TCP Port 2560"]
+    end
+
+    %% Services nested inside the Edge Server
+    subgraph Server ["Edge Server (Intel N5100 Docker Stack)"]
+        UI["Web UI"]
+        THROTTLE["WebThrottle"]
+        ROCRAIL["RocRail Server"]
+        MQTT["MQTT Broker"]
+        OCCUPANCY["Track Occupancy"]
+        BRIDGE["DCC-EX Bridge"]
+    end
+
+    %% Model Railroad Hardware
+    subgraph Hardware ["Model Railroad Hardware"]
+        CAM["Overhead Camera"]
+        DCC["DCC-EX Controller"]
+    end
+
+    %% Interface mapping to Services
+    UI_IF --> UI
+    THROTTLE_IF --> THROTTLE
+    ROCRAIL_IF --> ROCRAIL
+    MQTT_IF --> MQTT
+    OCC_IF --> OCCUPANCY
+    BRIDGE_IF --> BRIDGE
+
+    %% Core interactions & Hardware mapping
+    CAM -->|Live Video| OCCUPANCY
+    OCCUPANCY -->|MQTT Pub| MQTT
+    UI -->|API| OCCUPANCY
+    THROTTLE <-->|WebSockets| MQTT
+    ROCRAIL <-->|MQTT Pub/Sub| MQTT
+    BRIDGE <-->|MQTT Pub/Sub| MQTT
+    BRIDGE <-->|USB Serial| DCC
 ```
 
 ---
 
-## 📂 Project Structure
+## 📂 Project Structure & Features
 
-- **`cnn/`**: Python environment for model training and validation.
-  - `TRAIN.ipynb`: Training pipeline and ONNX/ort export.
-  - `TEST-CNN.ipynb`: Performance benchmarking and validation.
-- **`ui/`**: Static single-page web application built with Lit.
-- **`control/`**: Server-side logic and Docker orchestration.
-  - `track-occupancy`: Main detection service. Reads the camera and does the cnn interference. Very CPU intensive.
-  - `dcc-ex-bridge`: MQTT/USB bridge for DCC control.
-  - `rocview-server`: Rocrail server, connect to it from rocrail clients (e.g. Rocview) at rocrail.rails49.org:8051. The Server Monitor is at https://rocrail.rails49.org/.
-- **`lib/`**: Shared TypeScript libraries.
-  - `@occupancy/classifier`: Unified inference wrapper (Server/Browser).
-  - `@occupancy/r49`: Schema and parser for railroad configuration.
-  - `@occupancy/uid`: Snowflake-based unique ID generation.
-    - `nodeid 1`: Labels (track, coupling, train)
-    - `nodeid 2`: Image files
-    - `nodeid 3`: Camera configuration files
-- **`dataset/`**: Training data, labels, and `.r49` layout definitions.
-- **`webthrottle/`**: Simple throttle that runs in the browser at https://throttle.rails49.org
+The project is structured into modular components, each with its own comprehensive documentation:
 
----
+### Core Services & Applications
 
-## 🚀 Development Workflow
+*   **[Web UI (ui/)](ui/README.md)**: A responsive Lit-based single-page application for model railway monitoring and camera alignment.
+*   **[WebThrottle (webthrottle/)](webthrottle/README.md)**: A browser-based virtual DCC throttle optimized for mobile/tablet screens.
+*   **[Docker Control Stack (control/)](control/README.md)**: Handles edge server administration, DNS setup, security, Traefik reverse proxy, and NanoMQ MQTT broker.
+    *   **[Track Occupancy Detector (control/track-occupancy/)](control/track-occupancy/README.md)**: TS backend that acquires camera feeds, performs ONNX classifier inference, and publishes occupancy states via MQTT. Includes the REST API specification.
+    *   **[DCC-EX Bridge (control/dcc-ex-bridge/)](control/dcc-ex-bridge/README.md)**: MQTT/USB gateway that multiplexes commands safely to the DCC-EX Command Station.
+    *   **[Rocrail Server (control/rocview-server/)](control/rocview-server/README.md)**: Persistently mounted Rocrail control workspace with automatic nightly Git backups and integration specs.
 
-### 1. Model Training
-Managed via `uv` in the `cnn/` directory.
-```bash
-cd cnn
-uv run jupyter notebook
-```
-- Open `TRAIN.ipynb` and choose `Run All` to train the classifier.
-- Models are exported to `cnn/models/` in ONNX format for cross-platform compatibility.
+### Machine Learning Pipeline
 
-### 2. Frontend Development
-Managed via `pnpm` in the workspace root.
-```bash
-pnpm install
-cd ui
-pnpm dev
-```
+*   **[CNN Classifier (cnn/)](cnn/README.md)**: Python environment for training, validating, and exporting the ResNet-18 model to ONNX/ORT format.
+*   **[Dataset Preparation (dataset/)](dataset/README.md)**: Tools to extract training image crops from `.r49` railroad layout archives and split datasets deterministically.
 
-### 3. Deployment
-The system is designed for deployment to a fanless Intel N5100 server running Ubuntu.
-```bash
-./deploy.sh
-```
-This script synchronizes code, builds UI assets, and restarts the Docker stack.
+### Shared TypeScript Libraries
+
+*   **`lib/`**: Unified helper and schemas packages.
+    *   **[`@occupancy/r49` (lib/r49/)](lib/r49/README.md)**: Zod schemas and archive management for `.r49` layout archives.
+    *   **[`@occupancy/uid` (lib/uid/)](lib/uid/README.md)**: Snowflake-based alphanumeric unique identifier generator.
 
 ---
 
-## 📡 API Reference
+## 🚀 High-Level Development Workflow
 
-The edge server provides the following endpoints (accessible via `ui.rails49.org`):
-
-| Endpoint | Method | Description |
-| :--- | :--- | :--- |
-| [/api/snapshot](https://ui.rails49.org/api/snapshot) | `GET` | Retrieve the latest camera snapshot. |
-| [/api/r49](https://ui.rails49.org/api/r49) | `GET/POST` | Fetch or update layout configuration (.r49). |
-| [/api/test-cnn](https://ui.rails49.org/api/test-cnn) | `GET` | Run a diagnostic test of the classifier. Used by `TEST-CNN.ipynb`. |
-| [/api/sensors](https://ui.rails49.org/api/sensors) | `GET` | Retrieve server health and sensor statistics. `node` runs the classifier, `ffmpeg` aquires images from the camera, both in the track-occuppancy detector. |
-
----
-
-## 🖥 Server Management
-
-- **Hardware**: Intel N5100 (Kamrui Fanless PC) running Ubuntu.
-- **Access**: `ssh blocks` to login to the primary server.
-- **Dashboard**: Traefik dashboard available at [traefik.rails49.org](https://traefik.rails49.org).
-- **Control**: All services are managed via Docker Compose within the `control/` stack.
+1.  **Model Training**: Prepare the dataset in `dataset/` and train the CNN classifier in `cnn/` to output an optimized `.ort` model. Refer to the [CNN Training Guide](cnn/README.md) and [Dataset Prep Guide](dataset/README.md) for details.
+2.  **Frontend Development**: Test and build the Lit components in `ui/` or `webthrottle/`. Refer to the [UI Dev Guide](ui/README.md) and [WebThrottle Dev Guide](webthrottle/README.md).
+3.  **Deployment**: Deploy the Docker stack to the server using the workspace deployment script:
+    ```bash
+    ./deploy.sh
+    ```
+    *Refer to the [Control Deployment Steps](control/README.md#quickstart) for environment configuration.*
 
 ---
-
-
-
-## Router Configuration (FritzBox)
-
-Disable Rebind Protection: got to Network > Network Settings > Change Advanced Network Settings and add the domain (e.g. throttle.rails49.org) to the list. Then click Apply.
-
-![alt text](images/README/image.png)
-
 
 ## 📄 License
 
