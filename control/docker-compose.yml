@@ -22,10 +22,34 @@ services:
       - ./traefik/dynamic_conf.yaml:/etc/traefik/dynamic_conf.yaml:ro
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.api.rule=Host(`traefik.rails49.org`)"
+
+      # --- Wildcard Certificate Acquisition ---
+      - "traefik.http.routers.wildcard-certs.rule=HostRegexp(`{subdomain:[a-z]+}.${RAILS_DOMAIN:-rails49.org}`)"
+      - "traefik.http.routers.wildcard-certs.priority=1"
+      - "traefik.http.routers.wildcard-certs.entrypoints=websecure"
+      - "traefik.http.routers.wildcard-certs.middlewares=local-only@file"
+      - "traefik.http.routers.wildcard-certs.service=noop@internal"
+      - "traefik.http.routers.wildcard-certs.tls.certresolver=myresolver"
+      - "traefik.http.routers.wildcard-certs.tls.domains[0].main=*.${RAILS_DOMAIN:-rails49.org}"
+
+      # --- Traefik Dashboard ---
+      - "traefik.http.routers.api.rule=Host(`traefik.${RAILS_DOMAIN:-rails49.org}`)"
       - "traefik.http.routers.api.entrypoints=websecure"
       - "traefik.http.routers.api.tls.certresolver=myresolver"
       - "traefik.http.routers.api.service=api@internal"
+      - "traefik.http.routers.api.middlewares=local-only@file"
+
+      # --- Apex Domain Redirect Router ---
+      - "traefik.http.routers.apex-redirect.rule=Host(`${RAILS_DOMAIN:-rails49.org}`)"
+      - "traefik.http.routers.apex-redirect.entrypoints=websecure"
+      - "traefik.http.routers.apex-redirect.tls.certresolver=myresolver"
+      - "traefik.http.routers.apex-redirect.service=noop@internal"
+      - "traefik.http.routers.apex-redirect.middlewares=local-only@file,redirect-to-ui"
+
+      # --- Redirect regex Middleware (Note double-dollar escaping for Compose) ---
+      - "traefik.http.middlewares.redirect-to-ui.redirectregex.regex=^https://${RAILS_DOMAIN:-rails49.org}(.*)"
+      - "traefik.http.middlewares.redirect-to-ui.redirectregex.replacement=https://ui.${RAILS_DOMAIN:-rails49.org}$${1}"
+      - "traefik.http.middlewares.redirect-to-ui.redirectregex.permanent=true"
     restart: always
 
   # ── NanoMQ — MQTT broker ──────────────────────────────────────────────────
@@ -36,11 +60,11 @@ services:
       - ./mqtt/nanomq.conf:/etc/nanomq.conf:ro
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.mqttws.rule=Host(`mqtt.rails49.org`)"
+      - "traefik.http.routers.mqttws.rule=Host(`mqtt.${RAILS_DOMAIN:-rails49.org}`)"
       - "traefik.http.routers.mqttws.entrypoints=websecure"
       - "traefik.http.routers.mqttws.tls.certresolver=myresolver"
       - "traefik.http.services.mqttws.loadbalancer.server.port=9001"
-      - "traefik.tcp.routers.mqtttls.rule=HostSNI(`mqtt.rails49.org`)"
+      - "traefik.tcp.routers.mqtttls.rule=HostSNI(`mqtt.${RAILS_DOMAIN:-rails49.org}`)"
       - "traefik.tcp.routers.mqtttls.entrypoints=mqtts"
       - "traefik.tcp.routers.mqtttls.tls.certresolver=myresolver"
       - "traefik.tcp.services.mqtttls.loadbalancer.server.port=1883"
@@ -52,7 +76,7 @@ services:
     image: nginx:alpine
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.ui.rule=Host(`ui.rails49.org`)"
+      - "traefik.http.routers.ui.rule=Host(`ui.${RAILS_DOMAIN:-rails49.org}`)"
       - "traefik.http.routers.ui.entrypoints=websecure"
       - "traefik.http.routers.ui.tls.certresolver=myresolver"
       - "traefik.http.routers.ui.middlewares=local-only@file"
@@ -68,7 +92,7 @@ services:
     image: nginx:alpine
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.throttle.rule=Host(`throttle.rails49.org`)"
+      - "traefik.http.routers.throttle.rule=Host(`throttle.${RAILS_DOMAIN:-rails49.org}`)"
       - "traefik.http.routers.throttle.entrypoints=websecure"
       - "traefik.http.routers.throttle.tls.certresolver=myresolver"
       - "traefik.http.routers.throttle.middlewares=local-only@file"
@@ -96,7 +120,7 @@ services:
       - /dev/video0:/dev/video0
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.occupancy-api.rule=Host(`ui.rails49.org`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.occupancy-api.rule=Host(`ui.${RAILS_DOMAIN:-rails49.org}`) && PathPrefix(`/api`)"
       - "traefik.http.routers.occupancy-api.entrypoints=websecure"
       - "traefik.http.routers.occupancy-api.tls.certresolver=myresolver"
       - "traefik.http.routers.occupancy-api.middlewares=local-only@file"
@@ -148,7 +172,7 @@ services:
     labels:
       - "traefik.enable=true"
       # Server Monitor
-      - "traefik.http.routers.rocrail-server-monitor.rule=Host(`rocrail.rails49.org`)"
+      - "traefik.http.routers.rocrail-server-monitor.rule=Host(`rocrail.${RAILS_DOMAIN:-rails49.org}`)"
       - "traefik.http.routers.rocrail-server-monitor.entrypoints=websecure"
       - "traefik.http.routers.rocrail-server-monitor.tls.certresolver=myresolver"
       - "traefik.http.routers.rocrail-server-monitor.middlewares=local-only@file"
