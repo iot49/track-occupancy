@@ -43,10 +43,10 @@ For detailed configurations of DNS, proxy, SSL, and network administration, see 
 graph TD
     %% Service Interfaces above
     subgraph Interfaces ["Service Interfaces"]
-        UI_IF["HTTPS: ui.DOMAIN"]
-        THROTTLE_IF["HTTPS: throttle.DOMAIN"]
-        ROCRAIL_IF["HTTPS: rocrail.DOMAIN"]
-        MQTT_IF["WSS: mqtt.DOMAIN"]
+        UI_IF["HTTPS: ui.rails49.org"]
+        THROTTLE_IF["HTTPS: throttle.rails49.org"]
+        ROCRAIL_IF["HTTPS: rocrail.rails49.org"]
+        MQTT_IF["WSS: mqtt.rails49.org"]
         OCC_IF["MQTT Status Topic"]
         BRIDGE_IF["TCP Port 2560"]
     end

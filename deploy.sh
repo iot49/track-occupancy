@@ -55,6 +55,11 @@ rsync -avzR -c --delete \
   package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json tsconfig.base.json backup-rocrail-workspace.sh \
   "$REMOTE_HOST:$REMOTE_DIR/"
 
+# 3.5 Sync Environment Variables (Single source of truth)
+echo "🔑 Syncing environment variables..."
+rsync -avz .env "$REMOTE_HOST:$REMOTE_DIR/.env"
+rsync -avz .env "$REMOTE_HOST:$REMOTE_DIR/control/.env"
+
 # 4. Remote Execution
 if [ "$BUILD" -eq 1 ]; then
   echo "🐳 Rebuilding containers (no-cache)..."
