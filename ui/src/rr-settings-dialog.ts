@@ -13,6 +13,16 @@ import '@shoelace-style/shoelace/dist/components/button/button.js';
 import '@shoelace-style/shoelace/dist/components/icon/icon.js';
 import type { SlDialog } from '@shoelace-style/shoelace';
 
+function getBaseDomain(): string {
+  const hostname = window.location.hostname;
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return 'rails49.org';
+  }
+  return hostname.replace(/^(ui|throttle|mqtt|rocrail|traefik)\./, '');
+}
+
+const DEFAULT_SERVER_URL = `https://ui.${getBaseDomain()}`;
+
 /**
  * Dialog for configuring layout settings and selecting classifiers.
  * 
@@ -25,7 +35,7 @@ export class RRSettingsDialog extends LitElement {
   @property({ type: Boolean }) serverConnected = false;
   @property({ type: Boolean }) isSyncing = false;
   
-  @state() private _serverUrl = localStorage.getItem('rr-server-url') || 'https://ui.rails49.org';
+  @state() private _serverUrl = localStorage.getItem('rr-server-url') || DEFAULT_SERVER_URL;
 
   @query('sl-dialog') private _dialog!: SlDialog;
 
@@ -161,7 +171,7 @@ export class RRSettingsDialog extends LitElement {
               <sl-input 
                 value=${this._serverUrl} 
                 @sl-change=${(e: any) => this._onServerUrlChange(e.target.value)}
-                placeholder="https://ui.rails49.org"
+                placeholder=${DEFAULT_SERVER_URL}
               ></sl-input>
 
               <!-- Save button (toolbar) uploads to server when connected.

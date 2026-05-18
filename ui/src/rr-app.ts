@@ -11,6 +11,16 @@ import '@shoelace-style/shoelace/dist/components/icon/icon.js';
 // Set the base path for Shoelace assets (icons, etc.)
 setBasePath('/shoelace');
 
+function getBaseDomain(): string {
+  const hostname = window.location.hostname;
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return 'rails49.org';
+  }
+  return hostname.replace(/^(ui|throttle|mqtt|rocrail|traefik)\./, '');
+}
+
+const DEFAULT_SERVER_URL = `https://ui.${getBaseDomain()}`;
+
 /**
  * Top-level application shell.
  */
@@ -19,7 +29,7 @@ export class RRApp extends LitElement {
   @state() private _archive: R49Archive | null = null;
   @state() private _viewMode: 'editor' | 'live' = 'editor';
   @state() private _status = 'No archive loaded';
-  @state() private _serverUrl = localStorage.getItem('rr-server-url') || 'https://ui.rails49.org';
+  @state() private _serverUrl = localStorage.getItem('rr-server-url') || DEFAULT_SERVER_URL;
   @state() private _serverConnected = false;
   @state() private _isSyncing = false;
 

@@ -16,7 +16,15 @@ export interface MqttServiceOptions {
 type StateListener = (state: ConnectionState) => void;
 type MessageListener = (message: string) => void;
 
-const DEFAULT_BROKER = 'wss://mqtt.rails49.org';
+function getBaseDomain(): string {
+  const hostname = window.location.hostname;
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return 'rails49.org';
+  }
+  return hostname.replace(/^(ui|throttle|mqtt|rocrail|traefik)\./, '');
+}
+
+const DEFAULT_BROKER = `wss://mqtt.${getBaseDomain()}`;
 const DEFAULT_PREFIX = 'rails49';
 
 export class MqttService {
