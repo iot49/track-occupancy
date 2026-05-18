@@ -85,16 +85,19 @@ Persistently mounted Rocrail control workspace with integrated cron jobs for nig
 ## Quickstart
 
 ```bash
-# 1. Copy and fill in the secrets
-cp .env.example .env
+# 1. Configure the master environment file in the repository root
+cp ../.env.example ../.env
 
-# 2. Build the UI
+# 2. Copy the configured master environment to control/
+cp ../.env .env
+
+# 3. Build the frontends from the repository root
 cd ../.. && pnpm run build && cd control
 
-# 3. Start the stack
+# 4. Start the stack
 docker compose up -d
 
-# 4. Follow logs
+# 5. Follow logs
 docker compose logs -f
 ```
 

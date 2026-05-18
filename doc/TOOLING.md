@@ -44,17 +44,14 @@ To avoid the complexity and bugs associated with maintaining the `.r49` file for
 ## 🚀 Common Workflows
 
 ### Preparing Data for Training
-1. Place new `.r49` files in the source directory.
-2. Run the `dataset` tool:
+1. Place new `.r49` files in `dataset/r49/`.
+2. Run the TS dataset crop and split extraction tool:
    ```bash
-   pnpm --filter dataset run prepare-data
+   pnpm --filter dataset run prep
    ```
-3. The tool exports raw images and a simplified `labels.json` to `dataset/out/`.
-4. Run training in the `cnn/` directory:
-   ```bash
-   cd cnn
-   uv run train.py
-   ```
+3. The tool extracts image crops and structures them in `dataset/db/` with train/validation subfolders.
+4. Open and run the machine learning pipeline notebook in `cnn/`:
+   - Notebook: `cnn/TRAIN.ipynb`
 
 ### Updating the .r49 Format
 If the manifest structure changes:

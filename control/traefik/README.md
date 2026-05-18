@@ -13,15 +13,15 @@ This directory contains the configuration files for **Traefik**, the reverse pro
 
 Traefik binds directly to the server host's network interfaces on the following ports:
 
-| Port | Entrypoint | Protocol | Subdomain | Target Service |
+| Port | Entrypoint | Protocol | Subdomain Pattern | Target Service |
 | :--- | :--- | :--- | :--- | :--- |
 | `80` | `web` | HTTP | *(Any)* | Auto-redirects to `HTTPS` (443) |
-| `443` | `websecure` | HTTPS / WSS | `ui.rails49.org` <br> `throttle.rails49.org` <br> `rocrail.rails49.org` | Lit Web UI (`nginx-ui:80`) <br> WebThrottle (`nginx-throttle:80`) <br> Rocrail Monitor (`rocrail:8008`) |
-| `8883` | `mqtts` | TCP + TLS | `mqtt.rails49.org` | NanoMQ Broker (`mqtt:1883`) |
-| `2560` | `dcc` | Raw TCP | `dcc-ex.rails49.org` | DCC-EX Bridge (`dcc-ex-bridge:2560`) |
+| `443` | `websecure` | HTTPS / WSS | `ui.${RAILS_DOMAIN}` <br> `throttle.${RAILS_DOMAIN}` <br> `rocrail.${RAILS_DOMAIN}` | Lit Web UI (`nginx-ui:80`) <br> WebThrottle (`nginx-throttle:80`) <br> Rocrail Monitor (`rocrail:8008`) |
+| `8883` | `mqtts` | TCP + TLS | `mqtt.${RAILS_DOMAIN}` | NanoMQ Broker (`mqtt:1883`) |
+| `2560` | `dcc` | Raw TCP | `dcc-ex.${RAILS_DOMAIN}` | DCC-EX Bridge (`dcc-ex-bridge:2560`) |
 
 Additionally, the Traefik Admin Dashboard is exposed securely at:
-👉 **`https://traefik.rails49.org`**
+👉 **`https://traefik.${RAILS_DOMAIN}`**
 
 ---
 

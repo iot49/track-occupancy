@@ -26,7 +26,7 @@ Deploy the new models to both backend services and frontend browser clients.
 ### 4. Remote Diagnostic Verification
 Validate the performance and accuracy of the deployed model against live benchmarks.
 * **Notebook**: [TEST-CNN.ipynb](TEST-CNN.ipynb)
-* **Action**: Run the cells in `TEST-CNN.ipynb` to trigger a remote diagnostic test via the edge server's test endpoint (`https://ui.rails49.org/api/test-cnn`) and inspect the classification accuracy, confusion matrices, and filters of the active production model.
+* **Action**: Run the cells in `TEST-CNN.ipynb` to trigger a remote diagnostic test via the edge server's test endpoint (`https://ui.${RAILS_DOMAIN}/api/test-cnn`) and inspect the classification accuracy, confusion matrices, and filters of the active production model.
 
 ---
 
