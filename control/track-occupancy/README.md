@@ -23,19 +23,19 @@ This service is a high-performance TypeScript backend (`@occupancy/detector`) re
 The backend provides the following HTTP REST endpoints:
 
 ### 1. Camera Snapshot
-- **Endpoint**: `GET /api/snapshot`
+- **Endpoint**: `GET /api/snapshot` https://ui.rails49.org/api/snapshot
 - **Description**: Returns the latest raw JPEG image captured by the camera. Used by the frontend UI to display live feedback and draw track regions.
 
 ### 2. Layout Configuration (.r49)
-- **Endpoint**: `GET /api/r49` / `POST /api/r49`
+- **Endpoint**: `GET /api/r49` / `POST /api/r49` https://ui.rails49.org/api/r49
 - **Description**: Fetches or updates the current railroad layout definition, containing track point coordinates, scaling, and labels.
 
 ### 3. Classifier Diagnostics
-- **Endpoint**: `GET /api/test-cnn`
+- **Endpoint**: `GET /api/test-cnn` https://ui.rails49.org/api/test-cnn
 - **Description**: Runs a diagnostic test checking classifier accuracy against preloaded benchmarks. Primarily used for training validation (`TEST-CNN.ipynb`).
 
 ### 4. Telemetry & Sensors Stats
-- **Endpoint**: `GET /api/sensors`
+- **Endpoint**: `GET /api/sensors` https://ui.rails49.org/api/sensors
 - **Description**: Retrieves performance stats for FFmpeg image acquisition and the Node.js ONNX classifier execution.
 
 ---

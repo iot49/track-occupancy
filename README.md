@@ -33,26 +33,30 @@ This project provides a camera-based solution for track occupancy detection base
 
 ## 🏗 System Architecture
 
-The entire system is managed via Docker Compose on an edge server. The architecture consists of interfaces, the edge server stack, and physical model railroad hardware.
+The entire system is managed via Docker Compose on an edge server. The architecture consists of 
 
-For detailed configurations of DNS, proxy, SSL, and network administration, see the [Docker Control Stack Documentation](control/README.md).
+* Edge server (a computer capable of running a docker stack)
+* A usb camera connected to the track-occupany detector
+* [DCC-EX Command Station](https://dcc-ex.com/index.html#gsc.tab=0) connected to the ddc-ex-bridge service on server via USB.
+* All external ingress (except port 8051 to the rocrail-server) pass through a traefik proxy. See the [Docker Control Stack Documentation](control/README.md) for detailed configurations of DNS, proxy, SSL, and network administration.
 
 ### Service Architecture & Mappings
 
 ```mermaid
-graph TD
+flowchart TD
     %% Service Interfaces above
     subgraph Interfaces ["Service Interfaces"]
         UI_IF["HTTPS: ui.rails49.org"]
         THROTTLE_IF["HTTPS: throttle.rails49.org"]
         ROCRAIL_IF["HTTPS: rocrail.rails49.org"]
         MQTT_IF["WSS: mqtt.rails49.org"]
-        OCC_IF["MQTT Status Topic"]
+        OCC_IF["MQTT Event Bus"]
         BRIDGE_IF["TCP Port 2560"]
+        ROCVIEW["RocView or RocControl"]
     end
 
     %% Services nested inside the Edge Server
-    subgraph Server ["Edge Server (Intel N5100 Docker Stack)"]
+    subgraph Server ["Edge Server (Docker Stack)"]
         UI["Web UI"]
         THROTTLE["WebThrottle"]
         ROCRAIL["RocRail Server"]
@@ -68,21 +72,22 @@ graph TD
     end
 
     %% Interface mapping to Services
-    UI_IF --> UI
-    THROTTLE_IF --> THROTTLE
-    ROCRAIL_IF --> ROCRAIL
-    MQTT_IF --> MQTT
-    OCC_IF --> OCCUPANCY
-    BRIDGE_IF --> BRIDGE
+    UI_IF -->|TCP/443| UI
+    THROTTLE_IF -->|TCP/443| THROTTLE
+    ROCRAIL_IF -->|TCP/443| ROCRAIL
+    MQTT_IF -->|TCP/443 & TCP/8883| MQTT
+    OCC_IF -->|MQTT TCP 1883| OCCUPANCY
+    BRIDGE_IF -->|TCP/2560| BRIDGE
 
     %% Core interactions & Hardware mapping
-    CAM -->|Live Video| OCCUPANCY
-    OCCUPANCY -->|MQTT Pub| MQTT
-    UI -->|API| OCCUPANCY
-    THROTTLE <-->|WebSockets| MQTT
-    ROCRAIL <-->|MQTT Pub/Sub| MQTT
-    BRIDGE <-->|MQTT Pub/Sub| MQTT
+    CAM -->|USB Live Video| OCCUPANCY
+    OCCUPANCY -->|MQTT TCP 1883 Pub| MQTT
+    UI -->|HTTP TCP 3000 API| OCCUPANCY
+    THROTTLE <-->|WSS TCP 443 MQTT| MQTT
+    ROCRAIL <-->|MQTT TCP 1883 Pub/Sub| MQTT
+    BRIDGE <-->|MQTT TCP 1883 Pub/Sub| MQTT
     BRIDGE <-->|USB Serial| DCC
+    ROCVIEW <-->|TCP 8051| ROCRAIL
 ```
 
 ---
