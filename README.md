@@ -66,8 +66,12 @@ flowchart TD
     end
 
     %% Model Railroad Hardware
-    subgraph Hardware ["Model Railroad Hardware"]
+    subgraph USBCamera ["Camera"]
         CAM["Overhead Camera"]
+    end
+
+    %% Model Railroad Hardware
+    subgraph DCCCommandStation ["DCC CS"]
         DCC["DCC-EX Controller"]
     end
 
