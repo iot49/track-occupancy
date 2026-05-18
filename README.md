@@ -94,6 +94,7 @@ The project is structured into modular components, each with its own comprehensi
 ### Getting Started & Installation
 
 *   **[New Edge Server Installation Guide (doc/INSTALL.md)](doc/INSTALL.md)**: Full step-by-step instructions to configure Cloudflare Wildcard DNS, set up environment variables, and deploy the stack onto a fresh edge server.
+*   **[Project Tooling and Environment (doc/TOOLING.md)](doc/TOOLING.md)**: Details our Python-TypeScript hybrid development environment, workspace configurations, and key architectural choices (like single-language parsing and environment isolation).
 
 ### Core Services & Applications
 
@@ -125,7 +126,7 @@ The project is structured into modular components, each with its own comprehensi
     ```bash
     ./deploy.sh
     ```
-    *Refer to the [Control Deployment Steps](control/README.md#quickstart) and the [New Edge Server Installation Guide](doc/INSTALL.md) for environment and custom domain configurations.*
+    *Refer to the [Control Deployment Steps](control/README.md#quickstart) and the [New Edge Server Installation Guide](doc/INSTALL.md) for environment and custom domain configurations. For developer workspace tooling setup, refer to the [Project Tooling Guide](doc/TOOLING.md).*
 
 ---
 

@@ -9,10 +9,6 @@ images/MQTT
 .env
 .gemini
 
-# Various
-TODO.md
-doc
-
 # Dependencies
 node_modules
 .venv
