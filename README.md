@@ -91,6 +91,10 @@ graph TD
 
 The project is structured into modular components, each with its own comprehensive documentation:
 
+### Getting Started & Installation
+
+*   **[New Edge Server Installation Guide (doc/INSTALL.md)](doc/INSTALL.md)**: Full step-by-step instructions to configure Cloudflare Wildcard DNS, set up environment variables, and deploy the stack onto a fresh edge server.
+
 ### Core Services & Applications
 
 *   **[Web UI (ui/)](ui/README.md)**: A responsive Lit-based single-page application for model railway monitoring and camera alignment.
@@ -121,7 +125,7 @@ The project is structured into modular components, each with its own comprehensi
     ```bash
     ./deploy.sh
     ```
-    *Refer to the [Control Deployment Steps](control/README.md#quickstart) for environment configuration.*
+    *Refer to the [Control Deployment Steps](control/README.md#quickstart) and the [New Edge Server Installation Guide](doc/INSTALL.md) for environment and custom domain configurations.*
 
 ---
 
